@@ -16,6 +16,7 @@
 /* USB part */
 extern uint8_t packet_sent, packet_receive;
 extern uint32_t receive_length;
+extern uint8_t usb_data_buffer[CDC_ACM_DATA_PACKET_SIZE];
 
 usb_core_driver USB_OTG_dev =
 {
@@ -170,7 +171,7 @@ int main(void)
                 if (0 != receive_length) {
                     i++;
                     /* send receive datas */
-                    sprintf((char*)strin, "Test %d\r\n",i);
+                    sprintf((char*)strin, "Test %i -> %c\r\n", i, usb_data_buffer[0]);
 		    /* print receive data on LCD */
 		    LCD_ShowString(24,  0, strin, BLACK);
                     cdc_print(&USB_OTG_dev, strin, strlen((char*)strin)); //Test for printing a string
