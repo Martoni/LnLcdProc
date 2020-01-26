@@ -17,7 +17,7 @@
 
 /* USB part */
 extern uint8_t packet_sent, packet_receive;
-extern uint32_t receive_length;
+extern __IO uint32_t receive_length;
 extern uint8_t usb_data_buffer[CDC_ACM_DATA_PACKET_SIZE];
 
 usb_core_driver USB_OTG_dev =
@@ -139,6 +139,9 @@ void delay_1ms(uint32_t count)
 */
 int main(void)
 {
+    int led_state = 0;
+    uint8_t rcvstr[100] = "";
+
     led_init();
     Lcd_Init();// init OLED
     LCD_Clear(WHITE);
@@ -148,8 +151,6 @@ int main(void)
     blue_off();
     LCD_Clear(FONT_COLOR);
 
-    uint8_t strin[100] = "Test\r\n";
-    int i = 0;
     eclic_global_interrupt_enable();
     eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
     usb_rcu_config();
@@ -162,16 +163,31 @@ int main(void)
 
     LCD_Clear(FONT_COLOR);
     green_on();
+    blue_on();
+    red_on();
     while(1){
         if (USBD_CONFIGURED == USB_OTG_dev.dev.cur_status) {
             if (1 == packet_receive && 1 == packet_sent) {
                 packet_sent = 0;
                 /* receive datas from the host when the last packet datas have sent to the host */
-                cdc_acm_data_receive(&USB_OTG_dev);
+                //cdc_acm_data_receive(&USB_OTG_dev);
+                usbd_ep_recev (&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, rcvstr, 100);
             } else {
+                red_off();
                 if (0 != receive_length) {
-		            /* print receive data on LCD */
-		            LCD_ShowString(0,  0, usb_data_buffer, BLACK);
+                    /* toggle leds */
+                    if(led_state == 1){
+                        green_off();
+                        blue_on();
+                        led_state = 0;
+                    }else{
+                        green_on();
+                        blue_off();
+                        led_state = 1;
+                    }
+                    /* print receive data on LCD */
+                    LCD_ShowString(0,  0, rcvstr, BLACK);
+                    cdc_print(&USB_OTG_dev, "OK", 2); //Acknowledge
                     receive_length = 0;
                 }
             }
