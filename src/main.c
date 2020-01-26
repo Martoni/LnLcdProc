@@ -13,6 +13,8 @@
 #include <string.h>
 #include "lcd.h"
 
+#define FONT_COLOR GREEN
+
 /* USB part */
 extern uint8_t packet_sent, packet_receive;
 extern uint32_t receive_length;
@@ -144,7 +146,7 @@ int main(void)
     red_off();
     green_off();
     blue_off();
-    LCD_Clear(RED);
+    LCD_Clear(FONT_COLOR);
 
     uint8_t strin[100] = "Test\r\n";
     int i = 0;
@@ -158,9 +160,8 @@ int main(void)
     while (USBD_CONFIGURED != USB_OTG_dev.dev.cur_status) {
     }
 
-    LCD_Clear(RED);
+    LCD_Clear(FONT_COLOR);
     green_on();
-
     while(1){
         if (USBD_CONFIGURED == USB_OTG_dev.dev.cur_status) {
             if (1 == packet_receive && 1 == packet_sent) {
@@ -169,32 +170,13 @@ int main(void)
                 cdc_acm_data_receive(&USB_OTG_dev);
             } else {
                 if (0 != receive_length) {
-                    i++;
-                    /* send receive datas */
-                    sprintf((char*)strin, "Test %i -> %c\r\n", i, usb_data_buffer[0]);
-		    /* print receive data on LCD */
-		    LCD_ShowString(24,  0, strin, BLACK);
-                    cdc_print(&USB_OTG_dev, strin, strlen((char*)strin)); //Test for printing a string
-                    //cdc_acm_data_send(&USB_OTG_dev, receive_length); (Original example with simple loopback)
+		            /* print receive data on LCD */
+		            LCD_ShowString(0,  0, usb_data_buffer, BLACK);
                     receive_length = 0;
                 }
             }
         }
-//        red_on();
-//        LCD_Clear(RED);
-//        delay_1ms(100);
-//        red_off();
-//        delay_1ms(100);
-//        green_on();
-//        LCD_Clear(GREEN);
-//        delay_1ms(100);
-//        green_off();
-//        delay_1ms(100);
-//        blue_on();
-//        LCD_Clear(BLUE);
-//        delay_1ms(100);
-//        blue_off();
-//        delay_1ms(100);
+        delay_1ms(500);
     }
 }
 
